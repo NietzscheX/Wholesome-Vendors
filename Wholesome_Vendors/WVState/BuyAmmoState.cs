@@ -109,7 +109,7 @@ namespace WholesomeVendors.WVState
             _pluginCacheManager.SanitizeDNSAndDNMLists();
             Vector3 vendorPosition = _ammoVendor.Creature.GetSpawnPosition;
 
-            if (!Helpers.TravelToVendorRange(_vendorTimerManager, _ammoVendor, DisplayName) 
+            if (!Helpers.TravelToVendorRange(_vendorTimerManager, _ammoVendor, DisplayName)
                 || Helpers.NpcIsAbsentOrDead(_blackListManager, _ammoVendor))
             {
                 return;
@@ -126,7 +126,8 @@ namespace WholesomeVendors.WVState
                 {
                     Helpers.SellItems(_pluginCacheManager);
                     Thread.Sleep(1000);
-                    WTGossip.BuyItem(_ammoToBuy.Name, AmountToBuy, _ammoToBuy.BuyCount);
+                    //WTGossip.BuyItem(_ammoToBuy.Name, AmountToBuy, _ammoToBuy.BuyCount);
+                    WTGossip.BuyItem(ItemsManager.GetNameById(_ammoToBuy.Entry), AmountToBuy, _ammoToBuy.BuyCount);
                     Thread.Sleep(1000);
 
                     if (_pluginCacheManager.NbAmmosInBags > nbBeforeTry)

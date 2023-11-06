@@ -134,7 +134,8 @@ namespace WholesomeVendors.WVState
                 {
                     Helpers.SellItems(_pluginCacheManager);
                     Thread.Sleep(1000);
-                    WTGossip.BuyItem(_foodToBuy.Name, AmountToBuy, _foodToBuy.BuyCount);
+                    //WTGossip.BuyItem(_foodToBuy.Name, AmountToBuy, _foodToBuy.BuyCount);
+                    WTGossip.BuyItem(ItemsManager.GetNameById(_foodToBuy.Entry), AmountToBuy, _foodToBuy.BuyCount);
                     Thread.Sleep(1000);
 
                     if (_pluginCacheManager.NbFoodsInBags > nbBeforeTry)

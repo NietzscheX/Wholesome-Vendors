@@ -206,7 +206,8 @@ namespace WholesomeVendors.WVState
                     {
                         Helpers.SellItems(_pluginCacheManager);
                         Thread.Sleep(1000);
-                        WTGossip.BuyItem(_mountSpellToLearn.AssociatedItem.Name, 1, 1);
+                        //WTGossip.BuyItem(_mountSpellToLearn.AssociatedItem.Name, 1, 1);
+                        WTGossip.BuyItem(ItemsManager.GetNameById(_mountSpellToLearn.AssociatedItem.Entry), 1, 1);
                         Thread.Sleep(3000);
 
                         if (_pluginCacheManager.BagItems.Exists(item => item.Entry == _mountSpellToLearn.AssociatedItem.Entry))

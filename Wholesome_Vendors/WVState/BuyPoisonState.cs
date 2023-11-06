@@ -140,7 +140,7 @@ namespace WholesomeVendors.WVState
             _pluginCacheManager.SanitizeDNSAndDNMLists();
             Vector3 vendorPosition = _poisonVendor.Creature.GetSpawnPosition;
 
-            if (!Helpers.TravelToVendorRange(_vendorTimerManager, _poisonVendor, DisplayName) 
+            if (!Helpers.TravelToVendorRange(_vendorTimerManager, _poisonVendor, DisplayName)
                 || Helpers.NpcIsAbsentOrDead(_blackListManager, _poisonVendor))
             {
                 return;
@@ -148,8 +148,8 @@ namespace WholesomeVendors.WVState
 
             for (int i = 0; i <= 5; i++)
             {
-                int nbBeforeTry = _poisonToBuy.displayid == 13710 ? 
-                    _pluginCacheManager.NbInstantPoisonsInBags 
+                int nbBeforeTry = _poisonToBuy.displayid == 13710 ?
+                    _pluginCacheManager.NbInstantPoisonsInBags
                     : _pluginCacheManager.NbDeadlyPoisonsInBags;
                 Logger.Log($"Attempt {i + 1}");
                 GoToTask.ToPositionAndIntecractWithNpc(vendorPosition, _poisonVendor.entry, i);
@@ -159,7 +159,8 @@ namespace WholesomeVendors.WVState
                 {
                     Helpers.SellItems(_pluginCacheManager);
                     Thread.Sleep(1000);
-                    WTGossip.BuyItem(_poisonToBuy.Name, _amountToBuy, _poisonToBuy.BuyCount);
+                    //WTGossip.BuyItem(_poisonToBuy.Name, _amountToBuy, _poisonToBuy.BuyCount);
+                    WTGossip.BuyItem(ItemsManager.GetNameById(_poisonToBuy.Entry), _amountToBuy, _poisonToBuy.BuyCount);
                     Thread.Sleep(1000);
 
                     if (_poisonToBuy.displayid == 13710 && _pluginCacheManager.NbInstantPoisonsInBags > nbBeforeTry) // Instant

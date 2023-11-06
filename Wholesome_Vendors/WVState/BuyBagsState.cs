@@ -98,7 +98,7 @@ namespace WholesomeVendors.WVState
             _pluginCacheManager.SanitizeDNSAndDNMLists();
             Vector3 vendorPosition = _bagVendor.Creature.GetSpawnPosition;
 
-            if (!Helpers.TravelToVendorRange(_vendorTimerManager, _bagVendor, DisplayName) 
+            if (!Helpers.TravelToVendorRange(_vendorTimerManager, _bagVendor, DisplayName)
                 || Helpers.NpcIsAbsentOrDead(_blackListManager, _bagVendor))
             {
                 return;
@@ -117,7 +117,8 @@ namespace WholesomeVendors.WVState
                     Helpers.SellItems(_pluginCacheManager);
                     Thread.Sleep(1000);
                     int nbEmptyContainerSlotsBeforeBuying = _pluginCacheManager.EmptyContainerSlots;
-                    WTGossip.BuyItem(_bagToBuy.Name, 1, _bagToBuy.BuyCount);
+                    //WTGossip.BuyItem(_bagToBuy.Name, 1, _bagToBuy.BuyCount);
+                    WTGossip.BuyItem(ItemsManager.GetNameById(_bagToBuy.Entry), 1, _bagToBuy.BuyCount);
                     Thread.Sleep(1000);
 
                     // Check if already equipped by inventory plugin

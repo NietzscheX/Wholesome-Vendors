@@ -107,7 +107,7 @@ namespace WholesomeVendors.WVState
             _pluginCacheManager.SanitizeDNSAndDNMLists();
             Vector3 vendorPosition = _drinkVendor.Creature.GetSpawnPosition;
 
-            if (!Helpers.TravelToVendorRange(_vendorTimerManager, _drinkVendor, DisplayName) 
+            if (!Helpers.TravelToVendorRange(_vendorTimerManager, _drinkVendor, DisplayName)
                 || Helpers.NpcIsAbsentOrDead(_blackListManager, _drinkVendor))
             {
                 return;
@@ -124,7 +124,8 @@ namespace WholesomeVendors.WVState
                 {
                     Helpers.SellItems(_pluginCacheManager);
                     Thread.Sleep(1000);
-                    WTGossip.BuyItem(_drinkToBuy.Name, AmountToBuy, _drinkToBuy.BuyCount);
+                    //WTGossip.BuyItem(_drinkToBuy.Name, AmountToBuy, _drinkToBuy.BuyCount);
+                    WTGossip.BuyItem(ItemsManager.GetNameById(_drinkToBuy.Entry), AmountToBuy, _drinkToBuy.BuyCount);
                     Thread.Sleep(1000);
 
                     if (_pluginCacheManager.NbDrinksInBags > nbBeforeTry)

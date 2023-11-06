@@ -344,3 +344,6 @@ healthchecksdb
 
 Dependencies
 /Db_To_Json/WoWDB/WoWDb335
+
+../.DS_Store
+.DS_Store
