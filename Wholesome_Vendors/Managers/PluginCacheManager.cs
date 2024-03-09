@@ -1,8 +1,11 @@
 ﻿using robotManager.Helpful;
+using robotManager.Products;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WholesomeToolbox;
 using WholesomeVendors.Database.Models;
@@ -29,8 +32,8 @@ namespace WholesomeVendors.Managers
         public int Money { get; private set; }
         public int EmptyContainerSlots { get; private set; }
         public bool IsInInstance { get; private set; }
-        public bool IsInBloodElfStartingZone { get; private set; }
-        public bool IsInDraeneiStartingZone { get; private set; }
+        public bool IsInBloodElfStartingZone { get; private set; } // 血精灵
+        public bool IsInDraeneiStartingZone { get; private set; } // 德莱尼
         public bool IsInOutlands { get; private set; }
         public int RidingSkill { get; private set; }
         public List<int> KnownMountSpells { get; private set; } = new List<int>();
@@ -42,9 +45,12 @@ namespace WholesomeVendors.Managers
         public int NbInstantPoisonsInBags { get; private set; }
         public List<ModelItemTemplate> UsableAmmos { get; private set; } = new List<ModelItemTemplate>();
         public List<(SkillLine, int)> WeaponsSpellsToLearn { get; private set; } = new List<(SkillLine, int)>();
-        public List<string> KnownSkills { get; private set; } = new List<string>();
+        public List<string> KnownSkills { get; private set; } = new List<string>();     // 已学技能？
+        public bool IsAlreadyHavePet { get; private set; }
 
         private object _cacheLock = new object();
+
+
 
         public PluginCacheManager(IMemoryDBManager memoryDBManager)
         {
@@ -113,12 +119,25 @@ namespace WholesomeVendors.Managers
                 if (item.Quality == 3) itemColor = Color.Blue;
                 Radar3D.DrawString(item.Name, new Vector3(600, heightMail += 20, 0), 10, itemColor);
             }
-        }
-
+        }       
+        
         private void OnEventsLuaWithArgs(string id, List<string> args)
         {
             switch (id)
             {
+                case "PLAYER_UNGHOST":                                    
+                    var item = BagItems.Where(i => i.SubClass == "食物和饮料").First();
+                    if(item != null)
+                    {
+                        /*                        
+                        Logger.LogError("比如CC感知到了复活，就立刻刷BUFF、召唤BB之类的会打断吃喝的进程");
+                        Logger.LogError("如果直接Product.InPause会导致可能出现一直在pause的复杂情况 因为pause的优先级很高");
+                        Logger.LogError("应该如何处理呢？");                                                
+                        */
+                        Logger.LogError("复活了尝试吃喝--可能会失败因为复活后状态改变了，触发了很多新的事件和状态变更");
+                        ItemsManager.UseItem(item.Name);                        
+                    }                        
+                    break;
                 case "PLAYER_LEVEL_UP":
                     RecordRangedWeaponType(); // because of ammo record
                     SanitizeDNSAndDNMLists();
@@ -152,6 +171,19 @@ namespace WholesomeVendors.Managers
                 case "INSTANCE_LOCK_STOP":
                 case "COMMENTATOR_ENTER_WORLD":
                     CacheInLoadingScreen();
+                    break;
+                // 新增一个技能lua红字错误
+                case "UI_ERROR_MESSAGE":
+                    if (args[0].Contains("你已经控制了一个召唤生物") || args[0].Contains("你的宠物太多了") || args[0].Contains("你的宠物已经死亡"))
+                    {
+                        IsAlreadyHavePet = true;
+                    }
+                    if (args[0].Contains("你无法召唤宠物"))
+                    {
+                        IsAlreadyHavePet = false;
+
+                    }
+
                     break;
             }
         }
@@ -369,13 +401,13 @@ namespace WholesomeVendors.Managers
                     List<WoWItem> equippedItems = EquippedItems.GetEquippedItems();
                     foreach (WoWItem equippedItem in equippedItems)
                     {
-                        if (equippedItem.GetItemInfo.ItemSubType == "Crossbows" || equippedItem.GetItemInfo.ItemSubType == "Bows")
+                        if (equippedItem.GetItemInfo.ItemSubType == "弩" || equippedItem.GetItemInfo.ItemSubType == "弓")
                         {
                             RangedWeaponType = "Bows";
                             UsableAmmos = _memoryDBManager.GetAllAmmos.FindAll(ammo => ammo.Subclass == 2 && ammo.RequiredLevel <= ObjectManager.Me.Level);
                             return;
                         }
-                        if (equippedItem.GetItemInfo.ItemSubType == "Guns")
+                        if (equippedItem.GetItemInfo.ItemSubType == "枪械")
                         {
                             RangedWeaponType = "Guns";
                             UsableAmmos = _memoryDBManager.GetAllAmmos.FindAll(ammo => ammo.Subclass == 3 && ammo.RequiredLevel <= ObjectManager.Me.Level);
@@ -575,9 +607,15 @@ namespace WholesomeVendors.Managers
         private bool ItemMightBeEquippableLater(WVItem item)
         {
             string sublclass = item.SubClass;
-            if (sublclass == "One-Handed Swords") sublclass = "Swords";
-            if (sublclass == "One-Handed Axes") sublclass = "Axes";
-            if (sublclass == "One-Handed Maces") sublclass = "Maces";
+            
+            //if (sublclass == "One-Handed Swords") sublclass = "Swords";
+            //if (sublclass == "One-Handed Axes") sublclass = "Axes";
+            //if (sublclass == "One-Handed Maces") sublclass = "Maces";
+
+            if (sublclass == "单手剑") sublclass = "剑";
+            if (sublclass == "单手斧") sublclass = "斧";
+            if (sublclass == "单手锤") sublclass = "锤";
+
             bool result = item.IsEquippable
                 && KnownSkills.Contains(sublclass)
                 && item.EquipSlot != "INVTYPE_AMMO"
@@ -624,6 +662,97 @@ namespace WholesomeVendors.Managers
             { SkillLine.Crossbows, 5011 },
             { SkillLine.FistWeapons, 15590 },
         };
+        /*
+         * 
+         * 关于自动职业任务 按职业、种族进行分类
+         * 
+         * Dictionary<WoWClass.猎人,List<int>>
+         * Dictionary<WoWClass,>
+         * 
+         */
+        /*
+        private Dictionary<WoWClass, Dictionary<WoWRace,List<int>>> classQuests = new Dictionary<WoWClass, Dictionary<WoWRace, List<int>>>()
+        {
+            // 猎人
+            { WoWClass.Hunter, new Dictionary<WoWRace, List<int>>()
+            {
+                // 血精灵
+                { WoWRace.BloodElf,new List<int>{
+                    9617,
+                    9484,
+                    9486,
+                    9485,
+                    9673
+                } },
+                
+                // 亡灵
+                { WoWRace.Undead,new List<int>{
+
+
+                } },                
+
+                // 兽人
+                { WoWRace.Orc,new List<int>{
+                    6068,
+                    6062,
+                    6083,
+                    6082,
+                    6081
+                } },
+                // 巨魔
+                { WoWRace.Troll,new List<int>{
+                    6068,
+                    6062,
+                    6083,
+                    6082,
+                    6081
+                } },
+                // 牛头人
+                { WoWRace.Tauren,new List<int>{
+                    6065,
+                    6061,
+                    6087,
+                    6088,
+                    6089
+                } },
+                //
+            } },
+
+            // 战士
+            { WoWClass.Warrior, new Dictionary<WoWRace, List<int>>()
+            {
+                // 血精灵
+                { WoWRace.BloodElf,new List<int>{
+
+
+                } },
+                
+                // 亡灵
+                { WoWRace.Undead,new List<int>{
+
+
+                } },                
+
+                // 兽人
+                { WoWRace.Orc,new List<int>{
+
+
+                } },
+                // 巨魔
+                { WoWRace.Troll,new List<int>{
+
+
+                } },
+                // 牛头人
+                { WoWRace.Tauren,new List<int>{
+
+
+                } },
+                //
+            } },
+
+        };
+        */
 
         private Dictionary<WoWClass, List<SkillLine>> classWeaponSkills = new Dictionary<WoWClass, List<SkillLine>>()
         {

@@ -63,24 +63,30 @@ namespace WholesomeVendors.WVState
                     return false;
                 }
 
+                // 学一个技能要9银币
+                if(ObjectManager.Me.GetMoneyCopper < 10*100)
+                {
+                    return false;
+                }
+
                 foreach ((SkillLine skill, int spell) skillToLearn in _pluginCacheManager.WeaponsSpellsToLearn)
                 {
                     _weaponSpell = _memoryDBManager.GetWeaponSpellById(skillToLearn.spell);
                     // OH bug
-                    if (_pluginCacheManager.KnownSkills.Contains("Swords")
-                        && _weaponSpell.name_lang_1 == "One-Handed Swords")
+                    if (_pluginCacheManager.KnownSkills.Contains("剑")
+                        && _weaponSpell.name_lang_1 == "单手剑")
                     {
                         continue;
                     }
                     // OH bug
-                    if (_pluginCacheManager.KnownSkills.Contains("Maces")
-                        && _weaponSpell.name_lang_1 == "One-Handed Maces")
+                    if (_pluginCacheManager.KnownSkills.Contains("锤")
+                        && _weaponSpell.name_lang_1 == "单手锤")
                     {
                         continue;
                     }
                     // OH bug
-                    if (_pluginCacheManager.KnownSkills.Contains("Axes")
-                        && _weaponSpell.name_lang_1 == "One-Handed Axes")
+                    if (_pluginCacheManager.KnownSkills.Contains("斧")
+                        && _weaponSpell.name_lang_1 == "单手斧")
                     {
                         continue;
                     }

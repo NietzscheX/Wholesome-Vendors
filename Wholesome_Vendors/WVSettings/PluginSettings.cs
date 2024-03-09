@@ -132,6 +132,52 @@ namespace WholesomeVendors.WVSettings
         [Description("Set at which levels you want to train. Leave empty if you want to train every 2 levels.")]
         public List<int> TrainLevels { get; set; }
 
+        /*
+         * AllowTrainBusiness
+         * AllowTrainBusinessOfMining
+         * AllowTrainBusinessOfHerbs
+         * AllowTrainBusinessOfSkin
+         * 
+         */
+
+        [Setting]
+        [DefaultValue(false)]
+        [Category("Training")]
+        [DisplayName("做职业任务")]
+        [Description("是否做职业任务")]
+        public bool AllowClassQuest { get; set; }
+
+        [Setting]
+        [DefaultValue(false)]
+        [Category("Training")]
+        [DisplayName("学习商业技能")]
+        [Description("当技能点数达到最大值的时候会自动去学更高级的，比如（50+25）/75")]
+        public bool AllowTrainBusiness { get; set; }
+
+        [Setting]
+        [DefaultValue(false)]
+        [Category("Training")]
+        [DisplayName("采矿")]
+        [Description("勾选上就会自动学习、自动购买相应的工具(矿工锄)")]
+        public bool AllowTrainBusinessOfMining { get; set; }
+
+
+        [Setting]
+        [DefaultValue(false)]
+        [Category("Training")]
+        [DisplayName("采药")]
+        [Description("勾选上就会自动学习(草药不需要工具)")]
+        public bool AllowTrainBusinessOfHerbs { get; set; }
+
+        [Setting]
+        [DefaultValue(false)]
+        [Category("Training")]
+        [DisplayName("剥皮")]
+        [Description("勾选上就会自动学习、自动购买相应的工具(剥皮小刀)")]
+        public bool AllowTrainBusinessOfSkin { get; set; }
+
+       
+
         [Setting]
         [DefaultValue(true)]
         [Category("Training")]
@@ -139,6 +185,7 @@ namespace WholesomeVendors.WVSettings
         [Description("Allow weapons training. Will only train when in city range of a weapon trainer.")]
         public bool AllowWeaponTrain { get; set; }
 
+   
         [Setting]
         [DefaultValue(false)]
         [Category("Mailing")]
@@ -236,6 +283,14 @@ namespace WholesomeVendors.WVSettings
         public int LastLevelTrained { get; set; }
         public bool FirstLaunch { get; set; }
 
+
+        /*
+        * AllowTrainBusiness
+        * AllowTrainBusinessOfMining
+        * AllowTrainBusinessOfHerbs
+        * AllowTrainBusinessOfSkin
+        * 
+        */
         public PluginSettings()
         {
             FoodType = "Any";
@@ -273,9 +328,20 @@ namespace WholesomeVendors.WVSettings
             MountsAreFree = false;
 
 
+            
             AllowTrain = true;
             AllowWeaponTrain = true;
+            // 商业技能
+            /*
+            AllowTrainBusiness = true;
+            AllowTrainBusinessOfMining = false;
+            AllowTrainBusinessOfHerbs = false;
+            AllowTrainBusinessOfSkin = true;
+            // 职业任务
+            AllowClassQuest = true;
+            */
             TrainLevels = new List<int> { };
+            
             LastLevelTrained = 0;
 
             LastUpdateDate = 0;

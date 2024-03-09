@@ -9,6 +9,7 @@ using WholesomeVendors.Database.Models;
 using WholesomeVendors.Managers;
 using WholesomeVendors.Utils;
 using WholesomeVendors.WVSettings;
+using wManager;
 using wManager.Wow.Bot.Tasks;
 using wManager.Wow.Enums;
 using wManager.Wow.Helpers;
@@ -18,7 +19,7 @@ namespace WholesomeVendors.WVState
 {
     public class BuyMountState : State
     {
-        public override string DisplayName { get; set; } = "WV Buy Mount";
+        public override string DisplayName { get; set; } = "购买坐骑";
 
         private readonly IPluginCacheManager _pluginCacheManager;
         private readonly IMemoryDBManager _memoryDBManager;
@@ -260,6 +261,9 @@ namespace WholesomeVendors.WVState
             if (mountItemInBag != null)
             {
                 ItemsManager.UseItemByNameOrId(mountItemInBag.Name);
+                // 应该设置当前的坐骑为这个目标坐骑
+                wManagerSetting.CurrentSetting.GroundMountName = mountItemInBag.Name;
+                wManagerSetting.CurrentSetting.Save();
                 return false;
             }
             else

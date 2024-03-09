@@ -25,6 +25,8 @@ namespace WholesomeVendors.Managers
         ModelGameObjectTemplate GetNearestMailBoxFrom(ModelCreatureTemplate npc);
         ModelGameObjectTemplate GetNearestMailBoxFromMe(int range);
         ModelCreatureTemplate GetNearestTrainer();
+        // 商业训练师
+        ModelCreatureTemplate GetNearestBusinessTrainer(string subname);
         ModelCreatureTemplate GetNearestWeaponsTrainer(int spellId);
         ModelSpell GetRidingSpellById(int id);
         ModelSpell GetWeaponSpellById(int id);

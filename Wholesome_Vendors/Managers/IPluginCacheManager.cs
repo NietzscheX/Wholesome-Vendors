@@ -31,6 +31,9 @@ namespace WholesomeVendors.Managers
         List<(SkillLine, int)> WeaponsSpellsToLearn { get; }
         List<string> KnownSkills { get; }
 
+        // 判断LR是否已经有宠物了
+        bool IsAlreadyHavePet { get;  }
+
         void RecordKnownMounts();
         bool HaveEnoughMoneyFor(int amount, ModelItemTemplate item);
         void SetItemToUnMailable(WVItem umItem);

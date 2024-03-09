@@ -1,5 +1,6 @@
 ﻿using robotManager.FiniteStateMachine;
 using robotManager.Helpful;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using wManager.Wow.Enums;
 using wManager.Wow.Helpers;
 using wManager.Wow.ObjectManager;
 using Timer = robotManager.Helpful.Timer;
+using wManager;
 
 namespace WholesomeVendors.WVState
 {
@@ -38,21 +40,76 @@ namespace WholesomeVendors.WVState
             IBlackListManager blackListManager)
         {
             _usingDungeonProduct = Helpers.UsingDungeonProduct();
-            _recipient = PluginSettings.CurrentSetting.MailingRecipient;
+            //_recipient = GetRecipient();
             _memoryDBManager = memoryDBManager;
             _pluginCacheManager = pluginCacheManager;
             _vendorTimerManager = vendorTimerManager;
             _blackListManager = blackListManager;
         }
 
+        // 邮件对象由#隔开
+        // 核心#斩蛇当道#逆向思维#毛毛虫的春天
+        // 为了方便还是搞个配置文件吧
+        // 如果配置文件里面有内容则之间读取配置文件的内容，否则读取插件里的内容，最后读取wr的设置
+        private string GetRecipient()
+        {
+            //Random random = new Random();
+            int randomIndex;
+            List<string> names = new List<string>();
+
+            string mailConf = Others.GetCurrentDirectory + @"\Plugins\sendmail.conf";
+
+            // 不存在就创建空白文件
+            if (!File.Exists(mailConf))
+            {                
+                using (StreamWriter sw = File.CreateText(mailConf)) { }
+                Logger.Log("配置文件创建成功");
+                return "";
+            }
+
+            // 文件存在就读取内容            
+            names.AddRange(File.ReadAllLines(mailConf));
+            // 文件有内容直接返回
+            if (names.Count > 0)
+            {            
+                //randomIndex = random.Next(names.Count);
+                randomIndex = Others.Random(0, names.Count -1);
+                //Logger.Log("从配置文件中选择邮寄对象 > " + names[randomIndex]);
+                return names[randomIndex].Trim();
+            }
+
+
+            // 文件没内容就下一步看插件的内容
+            // 读取插件中的配置
+            string recipients = PluginSettings.CurrentSetting.MailingRecipient;
+            if (!string.IsNullOrEmpty(recipients))
+            {
+                char[] delimiter = { '#' };
+                names.AddRange(recipients.Split(delimiter));
+                if (names.Count > 0)
+                {
+                    randomIndex = Others.Random(0, names.Count - 1 );
+                    Logger.Log("从插件中选择邮寄对象 > " + names[randomIndex]);
+                    return names[randomIndex].Trim();
+
+                }
+            }
+
+            // 返回wr的默认设置
+            
+            //Logger.Log("从WR设置中选择邮寄对象 > " + wManagerSetting.CurrentSetting.MailRecipient.Trim());
+            return wManagerSetting.CurrentSetting.MailRecipient.Trim();
+        }
+
         public override bool NeedToRun
         {
             get
             {
+                //_recipient = GetRecipient();
                 if (!PluginSettings.CurrentSetting.AllowMail
                     || !_stateTimer.IsReady
                     || !_pluginCacheManager.BagsRecorded
-                    || string.IsNullOrEmpty(_recipient)
+                    //|| string.IsNullOrEmpty(_recipient)
                     || _pluginCacheManager.ItemsToMail.Count <= 0
                     || !Main.IsLaunched
                     || _pluginCacheManager.InLoadingScreen
@@ -64,6 +121,7 @@ namespace WholesomeVendors.WVState
                     return false;
                 }
 
+                //_recipient = GetRecipient();
                 _nbFreeSlotsOnNeedToRun = _pluginCacheManager.NbFreeSlots;
 
                 //Logger.Log($"{_pluginCacheManager.ItemsToMail.Count} items to mail");
@@ -122,6 +180,7 @@ namespace WholesomeVendors.WVState
             {
                 return;
             }
+            _recipient = GetRecipient();
 
             Logger.Log($"Mailbox found. Sending mail to {_recipient} ({_pluginCacheManager.ItemsToMail.Count} items)");
 

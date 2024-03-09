@@ -26,6 +26,7 @@ namespace WholesomeVendors.Managers
         private List<ModelCreatureTemplate> _sellers;
         private List<ModelCreatureTemplate> _repairers;
         private List<ModelCreatureTemplate> _trainers;
+        private List<ModelCreatureTemplate> _businessTrainers; //商业训练师
         private List<ModelGameObjectTemplate> _mailboxes;
         private List<ModelSpell> _mounts;
         private List<ModelSpell> _ridingSpells;
@@ -98,6 +99,10 @@ namespace WholesomeVendors.Managers
                 _repairers = fullJsonModel.Repairers;
                 _trainers = fullJsonModel.Trainers
                     .FindAll(trainer => trainer.subname != null && trainer.subname.Contains(ObjectManager.Me.WowClass.ToString()));
+
+                _businessTrainers = fullJsonModel.BusinessTrainers
+                    .FindAll(trainer => trainer.subname != null && (trainer.subname.Contains("训练师") || trainer.subname.Contains("供应商")));
+
                 _mailboxes = fullJsonModel.Mailboxes
                     .FindAll(mailbox => mailbox.GameObject.map == 0
                         || mailbox.GameObject.map == 1
@@ -119,6 +124,9 @@ namespace WholesomeVendors.Managers
             }
 
             FilterMailBoxes();
+
+            Logger.Log(string.Format("_trainers的数量{0}", _trainers.Count));
+            Logger.Log(string.Format("_businessTrainers的数量{0}", _businessTrainers.Count));
 
             Logger.Log($"Initialization took {watch.ElapsedMilliseconds}ms");
         }
@@ -317,6 +325,7 @@ namespace WholesomeVendors.Managers
         public ModelCreatureTemplate GetNearestSeller()
         {
             return _sellers
+                .Where(npc => npc.IsFriendly)
                 .Where(vendor => _blackListManager.IsVendorValid(vendor))
                 .OrderBy(seller => ObjectManager.Me.Position.DistanceTo(seller.Creature.GetSpawnPosition))
                 .FirstOrDefault();
@@ -325,6 +334,7 @@ namespace WholesomeVendors.Managers
         public ModelCreatureTemplate GetNearestRepairer()
         {
             return _repairers
+                .Where(npc => npc.IsFriendly)
                 .Where(vendor => _blackListManager.IsVendorValid(vendor))
                 .OrderBy(repairer => ObjectManager.Me.Position.DistanceTo(repairer.Creature.GetSpawnPosition))
                 .FirstOrDefault();
@@ -332,7 +342,7 @@ namespace WholesomeVendors.Managers
 
         public ModelGameObjectTemplate GetNearestMailBoxFrom(ModelCreatureTemplate npc)
         {
-            return _mailboxes
+            return _mailboxes                
                 .Where(mailbox => _blackListManager.IsMailBoxValid(mailbox)
                     && mailbox.GameObject.GetSpawnPosition.DistanceTo(npc.Creature.GetSpawnPosition) < 300)
                 .OrderBy(mailbox => ObjectManager.Me.Position.DistanceTo(mailbox.GameObject.GetSpawnPosition))
@@ -350,15 +360,33 @@ namespace WholesomeVendors.Managers
 
         public ModelCreatureTemplate GetNearestTrainer()
         {
+            Logger.LogError(string.Format($"数据库中技能训练NPC一共有{0}个", _trainers.Count()));
             return _trainers
+                .Where(npc => npc.IsFriendly)
                 .Where(vendor => _blackListManager.IsVendorValid(vendor)
                     && (ObjectManager.Me.Level <= vendor.minLevel || vendor.minLevel > 15 || vendor.entry == 328)) // Allow Zaldimar Wefhellt (goldshire mage trainer)
                 .OrderBy(vendor => ObjectManager.Me.Position.DistanceTo(vendor.Creature.GetSpawnPosition))
                 .FirstOrDefault();
         }
 
+
+        // 获取最近的商业训练师 ModelCreatureTemplate GetNearestBusinessTrainer(string business);
+        public ModelCreatureTemplate GetNearestBusinessTrainer(string subname)
+        {
+            Logger.LogError("调用GetNearestBusinessTrainer()");
+            Logger.LogError(string.Format("数据库中商业NPC一共有{0}个", _businessTrainers.Count()));
+            var result = _businessTrainers
+                .Where(vendor => _blackListManager.IsVendorValid(vendor) && vendor.subname == subname)
+                .OrderBy(vendor => ObjectManager.Me.Position.DistanceTo(vendor.Creature.GetSpawnPosition))
+                .FirstOrDefault();
+            //Logger.LogError(string.Format($"其中符合要求的商业NPC是{0}", subname,result.name));
+            Logger.LogError(string.Format("其中符合要求的商业NPC是{0}", subname));
+            return result;
+        }
+
         public ModelCreatureTemplate GetNearestWeaponsTrainer(int spellId)
         {
+            
             ModelSpell spellToLearn = _weaponSpells
                 .Find(ws => ws.Id == spellId);
             List<ModelCreatureTemplate> potentialVendors = new List<ModelCreatureTemplate>();

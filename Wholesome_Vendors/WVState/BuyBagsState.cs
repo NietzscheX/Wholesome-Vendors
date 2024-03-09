@@ -52,6 +52,7 @@ namespace WholesomeVendors.WVState
                     || !Conditions.InGameAndConnectedAndAliveAndProductStartedNotInPause)
                     return false;
 
+                // 如果背包没有空插槽？就可以把背包从不售卖列表中去掉...
                 if (_pluginCacheManager.EmptyContainerSlots <= 0)
                 {
                     WTSettings.RemoveItemFromDoNotSellAndMailList(_memoryDBManager.GetBags.Select(bag => bag.Name).ToList());
@@ -60,8 +61,9 @@ namespace WholesomeVendors.WVState
 
                 if (BagInBags() != null)
                 {
-                    Logger.Log($"Equipping {BagInBags().Name}");
+                    Logger.Log($"这里开始装备背包Equipping {BagInBags().Name}");
                     WTItem.EquipBag(BagInBags().Name);
+                    //WTItem.EquipBag(BagInBags().Name);
                     Thread.Sleep(500);
                     return false;
                 }
@@ -104,6 +106,7 @@ namespace WholesomeVendors.WVState
                 return;
             }
 
+            // 这个_bagToBuy.Name 是英文的
             WTSettings.AddItemToDoNotSellAndMailList(new List<string>() { _bagToBuy.Name });
 
             for (int i = 0; i <= 5; i++)
@@ -114,12 +117,16 @@ namespace WholesomeVendors.WVState
                 WTGossip.ClickOnFrameButton("StaticPopup1Button2"); // discard hearthstone popup
                 if (WTGossip.IsVendorGossipOpen)
                 {
-                    Helpers.SellItems(_pluginCacheManager);
+                    // 先不要卖吧
+                    Helpers.SellItems(_pluginCacheManager); 
                     Thread.Sleep(1000);
                     int nbEmptyContainerSlotsBeforeBuying = _pluginCacheManager.EmptyContainerSlots;
                     //WTGossip.BuyItem(_bagToBuy.Name, 1, _bagToBuy.BuyCount);
                     WTGossip.BuyItem(ItemsManager.GetNameById(_bagToBuy.Entry), 1, _bagToBuy.BuyCount);
                     Thread.Sleep(1000);
+                    // 买了直接装备吧
+                    //WTItem.EquipBag(ItemsManager.GetNameById(_bagToBuy.Entry));
+
 
                     // Check if already equipped by inventory plugin
                     if (nbEmptyContainerSlotsBeforeBuying > _pluginCacheManager.EmptyContainerSlots)
@@ -130,8 +137,8 @@ namespace WholesomeVendors.WVState
 
                     if (ItemsManager.GetItemCountByNameLUA(_bagToBuy.Name) > 0)
                     {
-                        Logger.Log($"Equipping {BagInBags().Name}");
-                        WTItem.EquipBag(BagInBags().Name);
+                        Logger.Log($"Equipping {BagInBags().Name}");                        
+                        WTItem.EquipBag(BagInBags().Name);                        
                         Thread.Sleep(1000);
                         Helpers.CloseWindow();
                         return;

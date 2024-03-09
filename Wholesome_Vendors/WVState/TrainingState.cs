@@ -26,11 +26,18 @@ namespace WholesomeVendors.WVState
         private ModelCreatureTemplate _trainerNpc;
 
         private List<int> _levelstoTrain => PluginSettings.CurrentSetting.TrainLevels.Count > 0 ? PluginSettings.CurrentSetting.TrainLevels : new List<int>
+        
         {2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28,
         30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56,
         58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80 };
 
-        private int LevelToTrain => _levelstoTrain.Find(l => (int)ObjectManager.Me.Level >= l && PluginSettings.CurrentSetting.LastLevelTrained < l);
+        /*
+         {2,  6, 10, 12,  16,  20, 22,  26, 
+        30, 32,  36,  40, 42,  46, 50, 52, 56,
+         60, 62,  66,  70, 72,  76,  80 };
+        */
+
+    private int LevelToTrain => _levelstoTrain.Find(l => (int)ObjectManager.Me.Level >= l && PluginSettings.CurrentSetting.LastLevelTrained < l);
 
         public TrainingState(
             IMemoryDBManager memoryDBManager,

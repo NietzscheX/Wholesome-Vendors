@@ -28,6 +28,19 @@ namespace WholesomeVendors.Utils
                 == "Wholesome Dungeon Crawler".ToLower().Trim().Replace(" ", "");
         }
 
+        public static void FlyTo(Vector3 pos)
+        {
+            int processId = (int)wManager.Wow.Memory.WowMemory.Memory.GetProcess().Id;
+            MemoryRobot.Memory memory = new MemoryRobot.Memory(processId);
+            uint BaseAddress = (uint)memory.ReadInt32(0xCD87A8);
+            BaseAddress = (uint)memory.ReadInt32(BaseAddress + 0x34);
+            BaseAddress = (uint)memory.ReadInt32(BaseAddress + 0x24);
+            memory.WriteFloat(BaseAddress + 0x798, pos.X);
+            memory.WriteFloat(BaseAddress + 0x79C, pos.Y);
+            memory.WriteFloat(BaseAddress + 0x7A0, pos.Z);
+
+            wManager.Wow.Helpers.Move.JumpOrAscend(wManager.Wow.Helpers.Move.MoveAction.PressKey, 100);
+        }
         // return true if arrived
         public static bool TravelToVendorRange(
             IVendorTimerManager vendorTimerManager,
@@ -39,6 +52,14 @@ namespace WholesomeVendors.Utils
             if (ObjectManager.Me.Position.DistanceTo(vendorPosition) >= 30)
             {
                 Logger.Log(reason);
+                if(Var.GetVar<bool>("CanFly") == true)
+                {
+                    Logger.Log("可以飞");
+                    FlyTo(vendorPosition);
+                }
+
+
+                
                 GoToTask.ToPosition(vendorPosition, 30);
                 return false;
                 /*
@@ -145,7 +166,8 @@ namespace WholesomeVendors.Utils
 
         public static bool MailboxIsAbsent(IBlackListManager blackListManager, ModelGameObjectTemplate mailbox)
         {
-            if (ObjectManager.GetObjectWoWGameObject().Count(x => x.Name == mailbox.name) <= 0)
+            //if (ObjectManager.GetObjectWoWGameObject().Count(x => x.Name == mailbox.name) <= 0)
+            if (ObjectManager.GetObjectWoWGameObject().Count(x => x.Name == "邮箱") <= 0)
             {
                 Logger.Log("Looks like " + mailbox.name + " is not here, blacklisting");
                 blackListManager.AddNPCToBlacklist(mailbox.entry);
@@ -198,13 +220,13 @@ namespace WholesomeVendors.Utils
             if (PluginSettings.CurrentSetting.AllowRepair)
             {
                 saveWRobotSettingRepair = wManagerSetting.CurrentSetting.Repair; // save user setting
-                wManagerSetting.CurrentSetting.Repair = false; // disable user setting
+                wManagerSetting.CurrentSetting.Repair = true; // disable user setting 还是开启吧
             }
 
             if (PluginSettings.CurrentSetting.AllowSell)
             {
                 saveWRobotSettingSell = wManagerSetting.CurrentSetting.Selling; // save user setting
-                wManagerSetting.CurrentSetting.Selling = false; // disable user setting
+                wManagerSetting.CurrentSetting.Selling = true; // disable user setting 还是开启吧
             }
 
             if (PluginSettings.CurrentSetting.AllowTrain)
